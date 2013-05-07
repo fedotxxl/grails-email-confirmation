@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 package com.grailsrocks.emailconfirmation
- 
-import java.util.concurrent.ConcurrentHashMap
-
-import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.context.request.RequestContextHolder
-import org.springframework.context.ApplicationContextAware
-import org.springframework.context.ApplicationContext
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-import org.codehaus.groovy.grails.commons.ApplicationHolder
-
-import com.grailsrocks.emailconfirmation.*
-
 import grails.util.Environment
+import org.codehaus.groovy.grails.commons.ApplicationHolder
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
+import org.springframework.transaction.annotation.Transactional
 
 import java.rmi.server.UID
-import java.security.*
+import java.security.SecureRandom
 
 class EmailConfirmationService implements ApplicationContextAware {
 
@@ -255,7 +247,7 @@ class EmailConfirmationService implements ApplicationContextAware {
         if (confirmationToken) {
             conf = PendingEmailConfirmation.findByConfirmationToken(confirmationToken)
             if (conf) {
-                conf = PendingEmailConfirmation.lock(conf.ident())
+                conf = safeLock(conf.ident())
             }
         }
 
@@ -300,7 +292,7 @@ class EmailConfirmationService implements ApplicationContextAware {
 		def c = 0
         // This is unlikely to be too expensive for most people
         staleConfirmationIds.each { id ->
-            def confirmation = PendingEmailConfirmation.lock(id)
+            def confirmation = safeLock(id)
             if (confirmation) {   
     			// Tell application
     			if (log.debugEnabled) {
@@ -320,6 +312,16 @@ class EmailConfirmationService implements ApplicationContextAware {
 			log.info( "Done check for stale email confirmations, found $c")
 		}
 	}
+
+    private PendingEmailConfirmation safeLock(id) {
+        try {
+            return PendingEmailConfirmation.lock(id)
+        } catch (UnsupportedOperationException e) {
+            //skip it
+            //http://jira.grails.org/browse/GPEMAILCONFIRMATION-32
+            return PendingEmailConfirmation.get(id)
+        }
+    }
 
 }
 
