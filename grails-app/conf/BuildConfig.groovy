@@ -16,7 +16,7 @@ grails.project.dependency.resolution = {
 		grailsCentral()
         // uncomment the below to enable remote dependency resolution
         // from public Maven repositories
-        //mavenCentral()
+        mavenCentral()
         //mavenLocal()
         //mavenRepo "http://snapshots.repository.codehaus.org"
         //mavenRepo "http://repository.codehaus.org"
@@ -37,7 +37,7 @@ grails.project.dependency.resolution = {
     plugins {
         build(":tomcat:$grailsVersion",
               ":hibernate:$grailsVersion",
-              ":release:2.1.0") {
+              ":release:2.2.1") {
             export = false
         }
 
@@ -46,3 +46,8 @@ grails.project.dependency.resolution = {
         compile(':mail:1.0')
     }
 }
+
+//configuring release plugin
+//myMavenRepo configured through ~/.grails/settings.groovy -> grails.project.repos.myMavenRepo.url = "https://mymavenrepo.com/repo/$MY_MAVEN_REPO_TOKEN/"
+//to publish plugin use "grails publish-plugin"
+grails.project.repos.default = "myMavenRepo"
